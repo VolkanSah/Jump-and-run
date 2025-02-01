@@ -1,6 +1,4 @@
-// ====================
-// Asset Loader
-// ====================
+// Zuerst fügen wir den Asset Loader am Anfang des Codes hinzu
 const Assets = {
   images: {},
   load: function() {
@@ -26,9 +24,7 @@ const Assets = {
   }
 };
 
-// ====================
-// Boss System
-// ====================
+// Boss-Klasse Definition
 class Boss {
   constructor(level) {
     this.level = level;
@@ -43,18 +39,15 @@ class Boss {
 
   update() {
     this.x -= this.speed;
-    
-    // Sinus-Bewegung für Boss
     this.y += Math.sin(Date.now() / 300 + this.level) * 2;
 
-    // Kollision mit Spieler
     if (Game.checkCollision(this, Game.player)) {
       Game.handlePlayerHit();
     }
   }
 
   draw() {
-    // Boss-Bild
+    // Boss Sprite zeichnen
     Game.ctx.drawImage(
       Assets.images.boss,
       this.x,
@@ -91,24 +84,21 @@ class Boss {
   }
 }
 
-// ====================
-// Modifiziertes Game-Objekt
-// ====================
-const Game = {
-  // ... [vorheriger Code bleibt] ...
-
+// Ergänzungen für das Game-Objekt
+const GameExtensions = {
   // Neue Eigenschaften
   bosses: [],
   currentBoss: null,
   nextBossThreshold: 500,
+  bullets: [],
 
+  // Modifizierte spawnCoin Funktion
   spawnCoin() {
-    // Reduzierte Spawn-Rate (nur 50% Chance)
-    if (Math.random() < 0.5) {
+    if (Math.random() < 0.5) {  // 50% Chance
       this.coins.push({
         x: Math.random() * (this.canvas.width - 20),
         y: Math.random() * (this.canvas.height - 100),
-        width: 25,  // Größere Münzen
+        width: 25,
         height: 25,
         collected: false,
         animationFrame: 0
@@ -116,6 +106,7 @@ const Game = {
     }
   },
 
+  // Boss Spawn Check
   checkBossSpawn() {
     if (this.state.score >= this.nextBossThreshold) {
       const bossLevel = Math.floor(this.state.score / 500);
@@ -125,10 +116,11 @@ const Game = {
     }
   },
 
+  // Boss Update Logik
   updateBosses() {
     this.bosses.forEach(boss => boss.update());
     
-    // Boss-Kollision mit Projektilen (Beispiel)
+    // Boss Kollision mit Projektilen
     this.bosses.forEach((boss, bossIndex) => {
       this.bullets.forEach((bullet, bulletIndex) => {
         if (this.checkCollision(bullet, boss)) {
@@ -136,87 +128,34 @@ const Game = {
           this.bullets.splice(bulletIndex, 1);
           if (boss.health <= 0) {
             this.bosses.splice(bossIndex, 1);
-            this.state.score += 200; // Extra-Punkte für Boss
+            this.state.score += 200;
           }
         }
       });
     });
-  },
-
-  // Modifizierte Draw-Funktionen mit Bildern
-  drawPlayer() {
-    this.ctx.drawImage(
-      Assets.images.player,
-      this.player.x,
-      this.player.y,
-      this.player.width,
-      this.player.height
-    );
-
-    // Invulnerability-Effekt
-    if (this.player.isInvulnerable) {
-      this.ctx.globalAlpha = 0.5;
-      this.ctx.drawImage(
-        Assets.images.player,
-        this.player.x,
-        this.player.y,
-        this.player.width,
-        this.player.height
-      );
-      this.ctx.globalAlpha = 1.0;
-    }
-  },
-
-  drawCoins() {
-    this.coins.forEach(coin => {
-      if (!coin.collected) {
-        // Animierte Münzen
-        coin.animationFrame = (coin.animationFrame + 0.1) % 8;
-        
-        this.ctx.drawImage(
-          Assets.images.coin,
-          Math.floor(coin.animationFrame) * 32, // Sprite-Sheet X
-          0, // Sprite-Sheet Y
-          32,
-          32,
-          coin.x,
-          coin.y,
-          coin.width,
-          coin.height
-        );
-      }
-    });
-  },
-
-  drawEnemies() {
-    this.enemies.forEach(enemy => {
-      this.ctx.drawImage(
-        Assets.images.enemy,
-        enemy.x,
-        enemy.y,
-        enemy.width,
-        enemy.height
-      );
-    });
-  },
-
-  // Modifizierter Game Loop
-  gameLoop() {
-    this.update();
-    this.checkBossSpawn();
-    this.draw();
-    
-    // Boss zeichnen
-    this.bosses.forEach(boss => boss.draw());
-
-    if (!this.state.gameOver) {
-      requestAnimationFrame(() => this.gameLoop());
-    }
   }
 };
 
-// Spielstart mit Asset-Loading
-Assets.load().then(() => {
-  Game.init();
-  document.getElementById('loadingScreen').style.display = 'none';
-});
+// Modifizierter Game Loop
+Game.gameLoop = function() {
+  this.update();
+  this.checkBossSpawn();
+  this.updateBosses();
+  this.draw();
+  
+  // Bosse zeichnen
+  this.bosses.forEach(boss => boss.draw());
+
+  if (!this.state.gameOver) {
+    requestAnimationFrame(() => this.gameLoop());
+  }
+};
+
+// Spiel mit Asset Loading starten
+window.onload = function() {
+  Assets.load().then(() => {
+    // Erweitere das Game-Objekt mit den neuen Funktionen
+    Object.assign(Game, GameExtensions);
+    Game.init();
+  });
+};
