@@ -5,10 +5,10 @@ const Assets = {
   images: {},
   load: function() {
     const toLoad = {
-      player: 'sprites/player.webp',
-      coin: 'sprites/coin.webp',
-      enemy: 'sprites/enemy.webp',
-      boss: 'sprites/boss.webp'
+      player: 'https://volkansah.github.io/Jump-and-run/sprites/player.webp',
+      coin: 'https://volkansah.github.io/Jump-and-run/sprites/coin.webp',
+      enemy: 'https://volkansah.github.io/Jump-and-run/sprites/enemy.webp',
+      boss: 'https://volkansah.github.io/Jump-and-run/sprites/boss.webp'
     };
 
     return Promise.all(
